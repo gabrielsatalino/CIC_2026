@@ -1,0 +1,157 @@
+---
+title: "Estuda esse Script"
+author: "Gabriela Dezotti"
+date: "2026-06-09"
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    dpi: 300
+    code-fold: true
+    code-summary: "Show code"
+    smooth-scroll: true
+    mainfont: "Aptos Display"
+    monofont: "Aptos"
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# The Package
+
+In this notebook, we will take a *first look* at the `comstab` package. The package provides tools for analyzing compositional stability in ecological communities using an innovative framework. It was described in a [manuscript](https://doi.org/10.1111/geb.13200) led by Jules Segrestin and published in the Journal of Global Ecology and Biogeography in 2024.
+
+The `comstab` package uses an approach based on a **partitioning**¹ of the inter-annual constancy in an ecosystem function **(invariability)** into the constancy of an "average species" in the community. That is, how stable each individual species is **by itself**, averaged across all species in the community. The most innovative part relies on the description of three stabilizing effects: (a) **dominant species**, (b) **species asynchrony**, and (c) **diversity**. With this framework, we are able to understand if stability is formed based on some individual species or whether it emerges from the community dynamic itself (species can buffer other species).
+
+¹In simpler words, means taking the total spread/variability in your data and sorting it into separate labeled boxes, where each box represents how much of that variability comes from a specific source
+
+# The theory behind the package
+
+Stability describes a community's ability to *buffer* the effects of natural fluctuations in the environment conditions and to *maintain* consistent functioning around a constant baseline.It means that when things in the environment change, the community does not change *too much* or *too fast*. It has the ability to “absorb” those changes. In general it means that a stable community is the one that keeps working **more or less the same**, even when the environment naturally goes up and down.
+
+The article mentions two main drivers of stability: (a) stability of species, particularly the **dominant ones**, and (b) compensatory dynamics, led by **asynchrony** in species responses over time. The first one is primarily related to ecological strategies and environmental conditions, while the second one is more related to species interactions and niche differentiation.
+
+It means that (a) if the dominants have small, slow changes in abundance, the community changes will also be smoother. So, species with conservative strategies tend to have more stable populations. This is specially important in uneven communities, where few species (dominant ones) show higher abundance and will probably have a stronger influence on community stability overall.
+
+**The Taylor's law** of variance-mean scaling is a well-known pattern in ecology. It has already showed that **dominant species tend to be the most stable ones** in the community. So, it can makes us think that the stability of the dominant species can be a key driver of stability. On the other hand, when communities present **high compensatory dynamics** results tend to be interpreted as a consequence of **ecological processes that promote asynchrony responses** between species (e.g competition, sensitivity to environmental conditions). However, recent studies also suggested that **compensatory dynamics** can be a consequence of **statistical averaging** (i.e. portfolio effect). The basic concept is: when you sum many species with not-perfectly-synchronized fluctuations, their ups and downs partially cancel **just by averaging**.
+
+::: callout-note
+#### Box 1. Compensatory Dynamics
+
+**Real compensatory compensation:** In a community *j*, Species A goes better in rainy years and worse in dry years, while Species B does the opposite. Because they respond differently to rainfall, when A is high B is low, keeping total community biomass [relatively stable]{.underline}. This contrasting, strategy-based responses cause some species to increase while others decrease, and this ecological ‘turn‑taking’ helps keep the community stable.
+
+**Statistical (portfolio) compensation:** When many species each vary a little and in slightly different ways, with some going a bit up and others a bit down, the larger number of species makes it *statistically more likely* that these differences will cancel out. As a result, the total community stays more stable, even if there is no strong interaction between species.
+
+- Thinking mathematically, if all species respond exactly the same over time, they add up rather than cancel out. **In this specific scenario, no compensation is possible because all species move together** [(Houlahan et al, 2007)](https://www.pnas.org/doi/full/10.1073/pnas.0603798104). But if only one species varies and all others are constant, then, at the community level, we can still see its variation in the total stability. True compensatory dynamics requires *at least* two species having opposing fluctuations and the more they are anti-synchronous, the stronger is the compensation./ [(Gonzalez & Loreau, 2009)](https://doi.org/10.1146/annurev.ecolsys.39.110707.173349).
+
+- So, as soon as species respond even slightly differently, **adding more species increases the chance that their fluctuations will cancel out statistically**. Therefore, more diverse communities often tend to be more stable at the aggregate level, especially through portfolio (averaging) effects, **although this is not an absolute rule**.
+
+| Scenario | Pairwise covariance | Compensation |
+|------------------------|------------------------|------------------------|
+| All species perfectly synchronous | Strongly positive | None — variances add up, no cancellation ([Yasuhara, 2007](https://pmc.ncbi.nlm.nih.gov/articles/PMC1805590/)) |
+| Only 1 species varies, rest constant | Zero (constant has no covariance) | Not applicable — pure pass-through of single-species variance |
+| ≥2 species vary, anti-synchronous | Negative | Compensation occurs, stronger as correlation approaches -1 ([Gonzalez & Loreau](https://sete-moulis-cnrs.fr/en/content_page/download/517/817/30)) |
+| ≥2 species vary independently | Near zero | Partial "averaging" stabilization, not true compensation ([Zhao et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC9759569/)) |
+
+: Mechanisms of compensatory dynamics under different synchrony scenarios
+:::
+
+# Segrestin et al. framework
+
+In the framework proposed by Segrestin et al., we will have the **null averaging effect** in the case of **perfect synchrony between species**. We can think of this framework as follows:
+
+1.  If all species are perfectly synchronized, the averaging effect is zero, even in very diverse communities. This happens because if every species goes up and down together, the **community-level fluctuation is just a scaled-up version of a single species' fluctuation**. In this case richness becomes irrelevant to stability.
+
+2.  As soon as there is any asynchrony (species fluctuating independently), the averaging effect becomes positive and (a) gets stronger when diversity increases, and (b) gets stronger when asynchrony increases.
+
+3.  So in this way we'll have: (a) averaging = 0 at perfect synchrony; (b) averaging grows with both number of species and how asynchronous they are.
+
+In this case, Segrestin and colleagues separated the **statistical averaging effect** from the **true compensatory dynamics**. This is important because it allows us to understand why diversity stabilizes ecosystems. It is essential to understand that richness alone is often enough to produce some averaging effect, even if there are no strong correlations [(Zhao et al., 2022)](https://doi.org/10.1038/s41467-022-35514-9). This effect is much more pronounced in real communities than the true compensatory dynamics. When we are talking about stability acrros sites (over time in space), species compensations play a much weaker role than the statistical averaging effect. The more species in a community, the higher the chance their fluctuations will cancel out statistically, an effect that doesn't require any direct biological interaction between them.
+
+![Framework for Stability in Segrestin et al.](images/image1.jpg/){#fig-segrestin fig-align="center" width="80%"}
+
+Looking at the figure above, we can see that the stability of communities is divided into four possible scenarios: **(a.1)** Stable average species: all species contribute somewhat equally and are individually steady **(a.2)** Stable dominants: the community is stable mainly because the dominant one happens to be stable **(a.3)** Species synchrony: species genuinely fluctuate in opposite directions **(a.4)** Community diversity: simply having more species smooths the total (averaging effect)
+
+Then, the framework allows us to decompose the total stability of a community (CVcom; coefficient of variation from the community) into four main components: (a) CVₛ: species variability, which means the average variability if you looked at species individually, ignoring the community context; (b) the dominance effect, which captures how much stability improves in the community once you weight it by which species actually dominate biomass; (c) the asynchrony effect between species, which is the true compensatory effect and (d) the averaging effect, that captures the passive statistical benefit of a community being more diverse.
+
+# Getting practical: the `comstab` package
+
+```{r}
+library(comstab)
+```
+
+The comstab package works around a few functions:
+
+**1. comTS():** Simulates synthetic community time series with custom parameters number of species, years, evenness, mean-variance scaling, synchrony level. It is great for testing controlled scenarios before touching real data.
+
+**2. partitionR():** Runs the actual partitioning of community CV into the dominance, asynchrony, and averaging effects.
+
+**3. plot.comstab():** A plotting function for comstab.
+
+**4. ternStab():** A ternary plot function that visualizes the relative contributions of the three stabilizing effects as points on a triangle, it is useful for comparing multiple communities or sites.
+
+We will start by simulating a synthetic community time series with the `comTS()` function. The objetive is to create different scenarios of community stability and see how the partitioning works in each case.
+
+| Argument | Description | Explanation |
+|------------------------|------------------------|------------------------|
+| nsp | Number of species | Defines how many species are in the simulated community; each one is assigned its own mean abundance following the geometric series set by *even* |
+| ny | Length of the time series | Determines how many years of abundance data are generated per species (\>5) |
+| even | Geometric rank-abundance ranging between 0 and 1 | Controls the constant ratio between successive mean abundances in the geometric series. With high values it produces even communities and with low values we have communities strongly dominated by a few species |
+| mvs | Coefficient of the mean-variance relationship | Scales each species' temporal variance as a function of its mean abundance, following Taylor's power law; ranges from 1 to 2, with higher values **meaning abundant species fluctuate proportionally more** |
+| sync | Level of synchrony between species | Determines the degree of temporal coordination among species fluctuations, controlling whether they vary independently, synchronously (together), or in a compensatory (asynchronously) manner |
+
+: Arguments of `comTS()`
+
+We will start by simulating a community with lower dominance and higher compensatory dynamics. This is a scenario where the community is more even and species fluctuate in opposite directions, which should lead to a more stable community overall.
+
+```{r}
+#| label: comTS-even-stable
+
+com_stable = comTS(nsp = 15, ny = 30, even = 0.9, mvs = 1.2, sync = "-2")
+residual_stable = partitionR(com_stable)
+plot(residual_stable)
+
+```
+
+The drop between each pair of consecutive points represents the size of one of the stabilizing effects. The drop from **CVe to CV\~ corresponds to Delta, the dominance effect**, a small drop like this indicates an even community with no species dominance. The drop from **CV\~ to CVa corresponds to Psi, the asynchrony effect**, in our plot the big drop indicates strong compensatory dynamics among species. Lastly, the drop from **CVa to CVcom corresponds to omega, the averaging effect**, which naturally grows as more species (nsp) are added to the community. In general, a bigger drop means a stronger stabilizing effect.
+
+In this scenario we have a community with high dominance values with dominant species that have high fluctuations.
+
+```{r}
+#| label: comTS-balanced
+ 
+com_balanced = comTS(nsp = 15, ny = 30, even = 0.4, mvs = 1.5, sync = "0")
+residual_balanced = partitionR(com_balanced)
+plot(residual_balanced)
+
+```
+
+Instead of dominance being basically flat, all three mechanisms are contributing here, with asynchrony doing the heaviest lifting. This is consistent with a simulation using moderate even, moderate-to-high mvs, and a negative sync value (compensatory dynamics), since that combination typically produces exactly this pattern — some dominance, strong asynchrony, and averaging.
+
+In the third scenario, we have a community with high evenness and low dominance, in this case species are responding the same way to environmental factors.
+
+```{r}
+#| label: comTS-positive
+
+com_positive = comTS(nsp = 10, ny = 30, even = 0.9, mvs = 1.5, sync = "2")
+residual_positive = partitionR(com_positive)
+plot(residual_positive)
+
+```
+
+This reinforces the point from the second plot, since the species from this model are synchronized, asynchrony can't do much stabilizing work, so most of the reduction in community-level variation comes from the purely statistical averaging effect.
+
+```{r}
+#| label: comTS-compensatory
+
+com_compensatory <- comTS(nsp = 10, ny = 30, even = 0.4, mvs = 1.5, sync = "-2")
+residual_compensatory <- partitionR(com_compensatory)
+plot(residual_compensatory)
+
+```
+
+::: callout-note
+When a community has too few species, the log-log regression doesn't have enough data points to detect a real trend, even if one technically exists. The result is a near-zero, statistically unreliable Delta rather than genuine proof of zero dominance effect. The other two effects, Psi and omega, aren't affected by this issue since they don't depend on that regression.
+:::
