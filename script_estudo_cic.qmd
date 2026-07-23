@@ -221,23 +221,32 @@ st_local3 <-lapply(st_local2, function(x) {
 
 st_local4 <- lapply(st_local3, partitionR)
 
+#como plotar objetos comstab
+
 plot(st_local4$S10447)
 
 plot(st_local4$S10075)
 
-#Não consegui fazer a partir daqui
+#Como adicionar sítios individuais no plot comparativo
 
-ternStab(st_local4$S10075)
+ternStab(st_local4$S12520) #plot comparativo inicial
+
+ternStab(st_local4$S10075, add = TRUE, col = "red") #adição de sítios
+
+ternStab(st_local4$S11610, add = TRUE, col = "navy") #adição de sítios
 
 
-ternStab(st_local4[[1]])                    # primeira comunidade, cria o gráfico
-for (i in 2:length(st_local4)) {
-  ternStab(st_local4[[i]], add = TRUE)
-}
+#problema a ser resolvido:
+#como juntar os sítios e compara-los a partir dos parâmetros de "invasão"
+#Invadido :sim ou não, proporção de invasão...
 
-ternStab(st_local4)
+#Outro problema encontrado: Muitos sítios com valor Relative = NA.
 
-#tentativa de solução
+#Exemplo:
+
+st_local4$S10291$Relative
+
+#tentativa de solução: Filtrar os sítios com problemas
 
 na_flags <- sapply(st_local4, function(x) any(is.na(x$Relative)))
 sum(na_flags)                    # quantos sítios foram afetados
@@ -249,7 +258,6 @@ ternStab(st_local4_valido[[1]])
 for (i in 2:length(st_local4_valido)) {
   ternStab(st_local4_valido[[i]], add = TRUE)
 }
-
 
 #Escala regional
 st_reg <- data[,-4]
