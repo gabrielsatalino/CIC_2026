@@ -14,9 +14,6 @@ format:
     smooth-scroll: true
     mainfont: "Aptos Display"
     monofont: "Aptos"
-editor: visual
-editor_options: 
-  chunk_output_type: console
 ---
 
 # The Package
