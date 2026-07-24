@@ -1,5 +1,4 @@
 ---
-title: "Estuda esse Script"
 author: "Gabriela Dezotti"
 date: "2026-06-09"
 format:

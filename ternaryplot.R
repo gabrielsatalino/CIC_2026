@@ -1,54 +1,34 @@
-# Plotando objetos comstab e TernPlots
-### Exemplo
-
-z <- comTS(nsp = 10, ny = 30, even = 0.6, mvs = 1.5, sync = "0") # Runs the partitioning of the community coefficient of variation:
-x <- partitionR(z) # Plots the result plot(x)
-
-# A função ternStab() plota a contribuição relativa de cada componente da partição (diagrama triangular Jules)
-
-#Exemplo
 require(Ternary)
-# Simulates a custom community time series using 'comTS()': z \<- comTS(nsp = 10, ny = 30, even = 0.6, mvs = 1.5, sync = "0") 
-# Runs the partitioning of the community coefficient of variation: x \<- partitionR(z) 
-# Plots the relative contributions oldpar \<- par(no.readonly = TRUE) par(mar = c(0, 0, 0, 0)) ternStab(x) plot(x) 
-# Adds a second community on the ternary plot z2 \<- comTS(nsp = 15, ny = 30, even = .7, mvs = 1.1, sync = "1") x2 \<- partitionR(z2) ternStab(x2, add = TRUE, col = "red") par(oldpar)
+require(comstab)
 
-#Teste: Comparando as contribuições dos componentes da partição sobre a estabilidade local e regional
 
-data <- read.csv("dados_comvar_fish_inv_semfiltar.csv", header = T , sep = ",")
+data = read.csv("data_for_collaborators.csv", header = TRUE, sep = ",")
+View(data)
 
-#Escala local
-st_local1 \<- data\[,-2\]
+# Creating relative contribution of each stabilizing effect
 
-st_local2\<- split(st_local1, f = st_local1\$SiteID)
+data$log_tau <- data$log_Delta + data$log_Psi + data$log_omega # Summing up the three effects
 
-st_local3 \<-lapply(st_local2, function(x) { x %\>% select(Year, Species, Abundance) %\>% group_by(Year, Species) %\>% summarise(Abundance = sum(Abundance, na.rm = TRUE), .groups = "drop") %\>% pivot_wider(names_from = Species, values_from = Abundance, values_fill = 0) %\>% column_to_rownames("Year") %\>% as.matrix() })
+data$Delta_cont <- data$log_Delta / data$log_tau # Dominance effect
+data$Psi_cont   <- data$log_Psi   / data$log_tau # Asynchrony effect
+data$omega_cont <- data$log_omega / data$log_tau # Averaging effect
 
-st_local4 \<- lapply(st_local3, partitionR)
 
-#como plotar objetos comstab
+# Basic configuration for the ternary plot
+oldpar <- par(no.readonly = TRUE) # First expand the margins
+par(mar = c(0, 0, 0, 0))
 
-plot(st_local4\$S10447)
+# Ternary plot
+TernaryPlot(alab = "Dominance", blab = "Asynchrony", clab = "Averaging")
 
-plot(st_local4\$S10075)
+TernaryPoints(
+  data.frame(data$Delta_cont, data$Psi_cont, data$omega_cont),
+  col = "steelblue", pch = 16, cex = 0.8
+) # Using contributions to plot points
 
-#Como adicionar sítios individuais no plot comparativo
+# Arrumar a proporção do TernaryPlot de acordo com os valores de Delta, Psi e omega;
+# Criar pontos com formato e cores diferentes para áreas invadidas e não-invadidas;
+# Aumentar o tamanho dos pontos e arrumar a estética do gráfico
+# Leia a documentação do pacote Ternary ;)
 
-ternStab(st_local4\$S12520) #plot comparativo inicial
-
-ternStab(st_local4\$S10075, add = TRUE, col = "red") #adição de sítios
-
-ternStab(st_local4\$S11610, add = TRUE, col = "navy") #adição de sítios
-
-#problema a ser resolvido: #como juntar os sítios e compara-los a partir dos parâmetros de "invasão" #Invadido :sim ou não, proporção de invasão...
-#Outro problema encontrado: Muitos sítios com valor Relative = NA.
-
-#Exemplo:
-st_local4$S10291$Relative
-
-#tentativa de solução: Filtrar os sítios com problemas
-na_flags \<- sapply(st_local4, function(x) any(is.na(x\$Relative))) sum(na_flags) \# quantos sítios foram afetados names(st_local4)\[na_flags\] \# quais SiteIDs
-st_local4_valido \<- st_local4\[!na_flags\]
-ternStab(st_local4_valido\[\[1\]\]) for (i in 2:length(st_local4_valido)) { ternStab(st_local4_valido\[\[i\]\], add = TRUE) }
-
-#Escala regional st_reg \<- data\[,-4\]
+par(oldpar)
